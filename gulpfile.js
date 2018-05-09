@@ -25,13 +25,15 @@ gulp.task('vet', function() {
     .pipe($.jshint.reporter('fail'));
 });
 
-gulp.task('styles', ['clean-styles'], function() {
+// gulp.task('styles', ['clean-styles'], function() {
+gulp.task('styles', function() {
   log('Compiling Less --> CSS');
 
   return gulp
     .src(config.less)
+    .pipe($.plumber())
     .pipe($.less())
-    .on('error', errorLogger)
+    // .on('error', errorLogger)
     .pipe($.autoprefixer({ browsers: ['last 2 versions', '> 5%'] }))
     .pipe(gulp.dest(config.temp));
 });
