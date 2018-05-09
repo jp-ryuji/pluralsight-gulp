@@ -31,6 +31,7 @@ gulp.task('styles', ['clean-styles'], function() {
   return gulp
     .src(config.less)
     .pipe($.less())
+    .on('error', errorLogger)
     .pipe($.autoprefixer({ browsers: ['last 2 versions', '> 5%'] }))
     .pipe(gulp.dest(config.temp));
 });
@@ -43,6 +44,13 @@ gulp.task('clean-styles', function(done) {
 gulp.task('less-watcher', function() {
   gulp.watch([config.less], ['styles']);
 });
+
+function errorLogger(error) {
+  log('*** Start of Error ***');
+  log(error);
+  log('*** End of Error ***');
+  this.emit('end');
+}
 
 function clean(path, done) {
   log('Cleaning' + $.util.colors.blue(path));
