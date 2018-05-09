@@ -87,7 +87,7 @@ gulp.task('serve-dev', ['inject'], function() {
   };
 
   return $.nodemon(nodeOptions)
-    .on('restart', function(ev) {
+    .on('restart', ['vet'], function(ev) {
       log('*** nodemon restarted');
       log('files changed on restart:\n' + ev);
     })
