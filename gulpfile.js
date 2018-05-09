@@ -35,14 +35,14 @@ gulp.task('styles', ['clean-styles'], function() {
     .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('clean-styles', function() {
+gulp.task('clean-styles', function(done) {
   var files = config.temp + '**/*.css';
-  clean(files);
+  clean(files, done)
 });
 
-function clean(path) {
+function clean(path, done) {
   log('Cleaning' + $.util.colors.blue(path));
-  del(path);
+  del(path, done);
 }
 
 function log(msg) {
