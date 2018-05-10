@@ -8,11 +8,8 @@ var config = require('./gulp.config')();
 
 var $ = require('gulp-load-plugins')({ lazy: true });
 var port = process.env.PORT || config.defaultPort;
-// They're plugins.
-// var jshint = require('gulp-jshint');
-// var jscs = require('gulp-jscs');
-// var util = require('gulp-util');
-// var gulpif = require('gulp-if');
+
+gulp.task('tasks', $.taskListing); // NOTE: `help` doesn't work, so use `tasks`
 
 gulp.task('vet', function() {
   log('Analyzing source with JSHint and JSCS');
