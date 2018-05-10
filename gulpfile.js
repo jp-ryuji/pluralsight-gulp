@@ -8,11 +8,9 @@ var config = require('./gulp.config')();
 
 var $ = require('gulp-load-plugins')({ lazy: true });
 var port = process.env.PORT || config.defaultPort;
-// They're plugins.
-// var jshint = require('gulp-jshint');
-// var jscs = require('gulp-jscs');
-// var util = require('gulp-util');
-// var gulpif = require('gulp-if');
+
+gulp.task('tasks', $.taskListing); // NOTE: `help` doesn't work, so use `tasks`
+gulp.task('default', ['tasks']);
 
 gulp.task('vet', function() {
   log('Analyzing source with JSHint and JSCS');
@@ -38,9 +36,37 @@ gulp.task('styles', ['clean-styles'], function() {
     .pipe(gulp.dest(config.temp));
 });
 
+gulp.task('fonts', ['clean-fonts'], function() {
+  log('Copying fonts');
+
+  return gulp.src(config.fonts)
+    .pipe(gulp.dest(config.build + 'fonts'));
+});
+
+gulp.task('images', ['clean-images'], function() {
+  log('Copying and compressing images');
+
+  return gulp.src(config.images)
+    .pipe($.imagemin({ optimizationLevel: 4 }))
+    .pipe(gulp.dest(config.build + 'images'));
+});
+
+gulp.task('clean', function() {
+  var delconfig = [].concat(config.build, config.temp);
+  log('Cleaning: ' + $.util.colors.blue(delconfig));
+  del(delconfig)
+});
+
+gulp.task('clean-fonts', function() {
+  clean(config.build + 'fonts/**/*.*');
+});
+
+gulp.task('clean-images', function() {
+  clean(config.build + 'images/**/*.*');
+});
+
 gulp.task('clean-styles', function() {
-  var files = config.temp + '**/*.css';
-  clean(files)
+  clean(config.temp + '**/*.css');
 });
 
 gulp.task('less-watcher', function() {
