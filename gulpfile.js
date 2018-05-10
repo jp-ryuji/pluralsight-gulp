@@ -25,8 +25,7 @@ gulp.task('vet', function() {
     .pipe($.jshint.reporter('fail'));
 });
 
-// gulp.task('styles', ['clean-styles'], function() {
-gulp.task('styles', function() {
+gulp.task('styles', ['clean-styles'], function() {
   log('Compiling Less --> CSS');
 
   return gulp
@@ -38,9 +37,9 @@ gulp.task('styles', function() {
     .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('clean-styles', function(done) {
+gulp.task('clean-styles', function() {
   var files = config.temp + '**/*.css';
-  clean(files, done)
+  clean(files)
 });
 
 gulp.task('less-watcher', function() {
@@ -54,9 +53,9 @@ function errorLogger(error) {
   this.emit('end');
 }
 
-function clean(path, done) {
+function clean(path) {
   log('Cleaning' + $.util.colors.blue(path));
-  del(path, done);
+  del(path);
 }
 
 function log(msg) {
