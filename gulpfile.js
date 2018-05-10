@@ -103,6 +103,13 @@ gulp.task('serve-dev', ['inject'], function() {
     });
 });
 
+//////////////
+
+function changeEvent(event) {
+  var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
+  log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
+}
+
 function startBrowserSync() {
   if (browserSync.active) {
     return;
@@ -110,10 +117,19 @@ function startBrowserSync() {
 
   log('Starting browser-sync on port' + port);
 
+  // FIXME: The changes are detected, but the browser is not reloaded (CSS is fetched).
+  //   `Injecting CSS From Less`
+  gulp.watch([config.less], ['styles'])
+      .on('change', function(event) { changeEvent(event); });
+
   var options = {
     proxy: 'localhost:' + port,
     port: 3000,
-    files: [config.client + '**/*.*'],
+    files: [
+      config.client + '**/*.*',
+      '!' + config.less,
+      config.temp + '**/*.css'
+    ],
     ghostMode: {
       clicks: true,
       location: false,
