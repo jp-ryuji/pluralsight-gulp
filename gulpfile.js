@@ -174,6 +174,8 @@ gulp.task('optimize', ['inject'], function() {
     .pipe(jsFilter)
     .pipe($.uglify())
     .pipe(jsFilter.restore)
+    .pipe($.rev()) // app.js -> app-<something>.js
+    .pipe($.revReplace()) // FIXME: $.useref() might be neede before this.
 
     .pipe(gulp.dest(config.build));
 });
