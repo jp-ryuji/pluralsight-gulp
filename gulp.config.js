@@ -22,6 +22,9 @@ module.exports = function() {
     server: server,
     temp: temp,
 
+    // browser sync
+    browserReloadDelay: 1000,
+
     // Bower and NPM locations
     bower: {
       json: require('./bower.json'),
