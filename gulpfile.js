@@ -36,14 +36,14 @@ gulp.task('styles', ['clean-styles'], function() {
     .pipe(gulp.dest(config.temp));
 });
 
-gulp.task('fonts', function() {
+gulp.task('fonts', ['clean-fonts'], function() {
   log('Copying fonts');
 
   return gulp.src(config.fonts)
     .pipe(gulp.dest(config.build + 'fonts'));
 });
 
-gulp.task('images', function() {
+gulp.task('images', ['clean-images'], function() {
   log('Copying and compressing images');
 
   return gulp.src(config.images)
@@ -51,9 +51,22 @@ gulp.task('images', function() {
     .pipe(gulp.dest(config.build + 'images'));
 });
 
+gulp.task('clean', function() {
+  var delconfig = [].concat(config.build, config.temp);
+  log('Cleaning: ' + $.util.colors.blue(delconfig));
+  del(delconfig)
+});
+
+gulp.task('clean-fonts', function() {
+  clean(config.build + 'fonts/**/*.*');
+});
+
+gulp.task('clean-images', function() {
+  clean(config.build + 'images/**/*.*');
+});
+
 gulp.task('clean-styles', function() {
-  var files = config.temp + '**/*.css';
-  clean(files)
+  clean(config.temp + '**/*.css');
 });
 
 gulp.task('less-watcher', function() {
