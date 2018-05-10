@@ -1,8 +1,8 @@
-// They're not plugins.
 var gulp = require('gulp');
 var args = require('yargs').argv;
 var print = require('gulp-print').default;
 var del = require('del');
+var browserSync = require('browser-sync');
 
 var config = require('./gulp.config')();
 
@@ -89,9 +89,14 @@ gulp.task('serve-dev', ['inject'], function() {
     .on('restart', ['vet'], function(ev) {
       log('*** nodemon restarted');
       log('files changed on restart:\n' + ev);
+      setTimeout(function() {
+        browserSync.notify('reloading now...');
+        browserSync.reload({ stream: false });
+      }, config.browserReloadDelay);
     })
     .on('start', function() {
       log('*** nodemon started');
+      startBrowserSync();
     })
     .on('crash', function() {
       log('*** nodemon crashed: script crashed for some reason');
@@ -100,6 +105,50 @@ gulp.task('serve-dev', ['inject'], function() {
       log('*** nodemon exited cleanly');
     });
 });
+
+//////////////
+
+function changeEvent(event) {
+  var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
+  log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
+}
+
+function startBrowserSync() {
+  if (args.nosync || browserSync.active) {
+    return;
+  }
+
+  log('Starting browser-sync on port' + port);
+
+  // FIXME: The changes are detected, but the browser is not reloaded (CSS is fetched).
+  //   `Injecting CSS From Less`
+  gulp.watch([config.less], ['styles'])
+      .on('change', function(event) { changeEvent(event); });
+
+  var options = {
+    proxy: 'localhost:' + port,
+    port: 3000,
+    files: [
+      config.client + '**/*.*',
+      '!' + config.less,
+      config.temp + '**/*.css'
+    ],
+    ghostMode: {
+      clicks: true,
+      location: false,
+      forms: true,
+      scroll: true
+    },
+    injectChanges: true, // In case of false, always reload.
+    logFileChanges: true,
+    logLevel: 'debug',
+    logPrefix: 'gulp-patterns',
+    notify: true,
+    reloadDelay: 1000 // ms
+  };
+
+  browserSync(options);
+}
 
 function errorLogger(error) {
   log('*** Start of Error ***');
