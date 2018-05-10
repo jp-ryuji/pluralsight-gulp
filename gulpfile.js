@@ -150,10 +150,14 @@ gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
 });
 
 // FIXME: Expected: A script tag is inserted. Actual: Not.
+// NOTE: https://github.com/johnpapa/pluralsight-gulp/issues/34#issuecomment-248982588
 gulp.task('optimize', ['inject'], function() {
   log('Optimizing the javascript, css, html');
 
+  // var assets = $.useref({ searchPath: './' });
   var templateCache = config.temp + config.templateCache.file;
+  var cssFilter = $.filter('**/*.css', { restore: true });
+  var jsFilter = $.filter('**/*.js', { restore: true });
 
   return gulp
     .src(config.index)
@@ -161,6 +165,16 @@ gulp.task('optimize', ['inject'], function() {
     .pipe($.inject(gulp.src(templateCache, { read: false }), {
       starttag: '<!-- inject:templates:js -->'
     }))
+
+    .pipe($.useref({ searchPath: './' }))
+    .pipe(cssFilter)
+    .pipe($.csso())
+    .pipe(cssFilter.restore)
+
+    .pipe(jsFilter)
+    .pipe($.uglify())
+    .pipe(jsFilter.restore)
+
     .pipe(gulp.dest(config.build));
 });
 
