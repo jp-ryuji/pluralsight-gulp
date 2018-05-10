@@ -89,6 +89,10 @@ gulp.task('serve-dev', ['inject'], function() {
     .on('restart', ['vet'], function(ev) {
       log('*** nodemon restarted');
       log('files changed on restart:\n' + ev);
+      setTimeout(function() {
+        browserSync.notify('reloading now...');
+        browserSync.reload({ stream: false });
+      }, config.browserReloadDelay);
     })
     .on('start', function() {
       log('*** nodemon started');
