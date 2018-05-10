@@ -10,8 +10,10 @@ module.exports = function() {
       './src/**/*.js',
       './*.js'
     ],
+    build: './build/',
     client: client,
     css: temp + 'styles.css',
+    fonts: './bower_components/font-awesome/fonts/**/*.*',
     index: client + 'index.html',
     js: [
       clientApp + '**/*.module.js', // The naming rule complies with Angular
