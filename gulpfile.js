@@ -108,7 +108,7 @@ gulp.task('wiredep', function() {
     .pipe(gulp.dest(config.client));
 });
 
-gulp.task('inject', ['wiredep', 'styles'], function() {
+gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
   log('Wire up the app css into the html, and call wiredep');
 
   var options = config.getWiredepDefaultOptions();
@@ -120,7 +120,34 @@ gulp.task('inject', ['wiredep', 'styles'], function() {
     .pipe(gulp.dest(config.client));
 });
 
+// NOTE: A script tag is inserted in build/index.html.
+// NOTE: see: https://github.com/johnpapa/pluralsight-gulp/issues/34#issuecomment-248982588
+gulp.task('optimize', ['inject'], function() {
+  log('Optimizing the javascript, css, html');
+
+  var templateCache = config.temp + config.templateCache.file;
+
+  return gulp
+    .src(config.index)
+    .pipe($.plumber())
+    .pipe($.inject(gulp.src(templateCache, { read: false }), {
+      starttag: '<!-- inject:templates:js -->'
+    }))
+    .pipe($.useref({ searchPath: './' })) // NOTE: The js files are concatinated into the build folder. And those files are put into index.html. But this doesn't work for css. Is that a matter of adding tags in index.html under src dir?
+    .pipe(gulp.dest(config.build));
+});
+
+gulp.task('serve-build', ['optimize'], function() {
+  serve(false);
+});
+
 gulp.task('serve-dev', ['inject'], function() {
+  serve(true);
+});
+
+//////////////
+
+function serve(isDev) {
   var isDev = true;
 
   var nodeOptions = {
@@ -144,7 +171,7 @@ gulp.task('serve-dev', ['inject'], function() {
     })
     .on('start', function() {
       log('*** nodemon started');
-      startBrowserSync();
+      startBrowserSync(isDev);
     })
     .on('crash', function() {
       log('*** nodemon crashed: script crashed for some reason');
@@ -152,16 +179,14 @@ gulp.task('serve-dev', ['inject'], function() {
     .on('exit', function() {
       log('*** nodemon exited cleanly');
     });
-});
-
-//////////////
+}
 
 function changeEvent(event) {
   var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
   log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
 }
 
-function startBrowserSync() {
+function startBrowserSync(isDev) {
   if (args.nosync || browserSync.active) {
     return;
   }
@@ -170,17 +195,22 @@ function startBrowserSync() {
 
   // FIXME: The changes are detected, but the browser is not reloaded (CSS is fetched).
   //   `Injecting CSS From Less`
-  gulp.watch([config.less], ['styles'])
-      .on('change', function(event) { changeEvent(event); });
+  if (isDev) {
+    gulp.watch([config.less], ['styles'])
+        .on('change', function(event) { changeEvent(event); });
+  } else {
+    gulp.watch([config.less, config.js, config.html], ['optimize', browserSync.reload])
+        .on('change', function(event) { changeEvent(event); });
+  }
 
   var options = {
     proxy: 'localhost:' + port,
     port: 3000,
-    files: [
+    files: isDev ? [
       config.client + '**/*.*',
       '!' + config.less,
       config.temp + '**/*.css'
-    ],
+    ] : [],
     ghostMode: {
       clicks: true,
       location: false,
