@@ -137,7 +137,17 @@ gulp.task('optimize', ['inject'], function() {
     .pipe(gulp.dest(config.build));
 });
 
+gulp.task('serve-build', ['optimize'], function() {
+  serve(false);
+});
+
 gulp.task('serve-dev', ['inject'], function() {
+  serve(true);
+});
+
+//////////////
+
+function serve(isDev) {
   var isDev = true;
 
   var nodeOptions = {
@@ -161,7 +171,7 @@ gulp.task('serve-dev', ['inject'], function() {
     })
     .on('start', function() {
       log('*** nodemon started');
-      startBrowserSync();
+      startBrowserSync(isDev);
     })
     .on('crash', function() {
       log('*** nodemon crashed: script crashed for some reason');
@@ -169,16 +179,14 @@ gulp.task('serve-dev', ['inject'], function() {
     .on('exit', function() {
       log('*** nodemon exited cleanly');
     });
-});
-
-//////////////
+}
 
 function changeEvent(event) {
   var srcPattern = new RegExp('/.*(?=/' + config.source + ')/');
   log('File ' + event.path.replace(srcPattern, '') + ' ' + event.type);
 }
 
-function startBrowserSync() {
+function startBrowserSync(isDev) {
   if (args.nosync || browserSync.active) {
     return;
   }
@@ -187,17 +195,22 @@ function startBrowserSync() {
 
   // FIXME: The changes are detected, but the browser is not reloaded (CSS is fetched).
   //   `Injecting CSS From Less`
-  gulp.watch([config.less], ['styles'])
-      .on('change', function(event) { changeEvent(event); });
+  if (isDev) {
+    gulp.watch([config.less], ['styles'])
+        .on('change', function(event) { changeEvent(event); });
+  } else {
+    gulp.watch([config.less, config.js, config.html], ['optimize', browserSync.reload])
+        .on('change', function(event) { changeEvent(event); });
+  }
 
   var options = {
     proxy: 'localhost:' + port,
     port: 3000,
-    files: [
+    files: isDev ? [
       config.client + '**/*.*',
       '!' + config.less,
       config.temp + '**/*.css'
-    ],
+    ] : [],
     ghostMode: {
       clicks: true,
       location: false,
