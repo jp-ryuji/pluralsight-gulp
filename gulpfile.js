@@ -121,6 +121,7 @@ gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
 });
 
 // NOTE: A script tag is inserted in build/index.html.
+// NOTE: see: https://github.com/johnpapa/pluralsight-gulp/issues/34#issuecomment-248982588
 gulp.task('optimize', ['inject'], function() {
   log('Optimizing the javascript, css, html');
 
@@ -132,6 +133,7 @@ gulp.task('optimize', ['inject'], function() {
     .pipe($.inject(gulp.src(templateCache, { read: false }), {
       starttag: '<!-- inject:templates:js -->'
     }))
+    .pipe($.useref({ searchPath: './' })) // NOTE: The js files are concatinated into the build folder. And those files are put into index.html. But this doesn't work for css. Is that a matter of adding tags in index.html under src dir?
     .pipe(gulp.dest(config.build));
 });
 
