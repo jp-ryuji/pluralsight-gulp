@@ -108,7 +108,7 @@ gulp.task('wiredep', function() {
     .pipe(gulp.dest(config.client));
 });
 
-gulp.task('inject', ['wiredep', 'styles'], function() {
+gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
   log('Wire up the app css into the html, and call wiredep');
 
   var options = config.getWiredepDefaultOptions();
@@ -118,6 +118,21 @@ gulp.task('inject', ['wiredep', 'styles'], function() {
     .src(config.index)
     .pipe($.inject(gulp.src(config.css)))
     .pipe(gulp.dest(config.client));
+});
+
+// NOTE: A script tag is inserted in build/index.html.
+gulp.task('optimize', ['inject'], function() {
+  log('Optimizing the javascript, css, html');
+
+  var templateCache = config.temp + config.templateCache.file;
+
+  return gulp
+    .src(config.index)
+    .pipe($.plumber())
+    .pipe($.inject(gulp.src(templateCache, { read: false }), {
+      starttag: '<!-- inject:templates:js -->'
+    }))
+    .pipe(gulp.dest(config.build));
 });
 
 gulp.task('serve-dev', ['inject'], function() {
