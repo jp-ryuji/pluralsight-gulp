@@ -111,9 +111,6 @@ gulp.task('wiredep', function() {
 gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
   log('Wire up the app css into the html, and call wiredep');
 
-  var options = config.getWiredepDefaultOptions();
-  var wiredep = require('wiredep').stream;
-
   return gulp
     .src(config.index)
     .pipe($.inject(gulp.src(config.css)))
@@ -122,10 +119,12 @@ gulp.task('inject', ['wiredep', 'styles', 'templatecache'], function() {
 
 // NOTE: A script tag is inserted in build/index.html.
 // NOTE: see: https://github.com/johnpapa/pluralsight-gulp/issues/34#issuecomment-248982588
-gulp.task('optimize', ['inject'], function() {
+gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
   log('Optimizing the javascript, css, html');
 
   var templateCache = config.temp + config.templateCache.file;
+  var cssFilter = $.filter('**/*.css', { restore: true });
+  var jsFilter = $.filter('**/*.js', { restore: true });
 
   return gulp
     .src(config.index)
@@ -134,9 +133,19 @@ gulp.task('optimize', ['inject'], function() {
       starttag: '<!-- inject:templates:js -->'
     }))
     .pipe($.useref({ searchPath: './' })) // NOTE: The js files are concatinated into the build folder. And those files are put into index.html. But this doesn't work for css. Is that a matter of adding tags in index.html under src dir?
+
+    .pipe(cssFilter)
+    .pipe($.csso())
+    .pipe(cssFilter.restore)
+
+    .pipe(jsFilter)
+    .pipe($.uglify())
+    .pipe(jsFilter.restore)
+
     .pipe(gulp.dest(config.build));
 });
 
+// FIXME: The files are concatinated and minified correctly, but separated files seem to be sent to the browser.
 gulp.task('serve-build', ['optimize'], function() {
   serve(false);
 });
