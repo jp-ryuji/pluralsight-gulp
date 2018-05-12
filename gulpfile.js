@@ -142,7 +142,14 @@ gulp.task('optimize', ['inject', 'fonts', 'images'], function() {
     .pipe($.uglify())
     .pipe(jsFilter.restore)
 
+    // NOTE: Not sure if the following rev stuff in put in an appropriate place. Maybe it is because revisioned files are created in the build directory.
+    // FIXME: But index.html is also revisioned. gulp serve-build works. But it looks wrong.
+    .pipe($.rev()) // app.js -> app-<something>.js
+    .pipe($.revReplace()) // FIXME: $.useref() might be neede before this.
+    .pipe($.rev.manifest())
+
     .pipe(gulp.dest(config.build));
+
 });
 
 // FIXME: The files are concatinated and minified correctly, but separated files seem to be sent to the browser.
